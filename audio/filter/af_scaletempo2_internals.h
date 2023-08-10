@@ -118,7 +118,7 @@ void mp_scaletempo2_destroy(struct mp_scaletempo2 *p);
 void mp_scaletempo2_reset(struct mp_scaletempo2 *p);
 void mp_scaletempo2_init(struct mp_scaletempo2 *p, int channels, int rate);
 int mp_scaletempo2_fill_input_buffer(struct mp_scaletempo2 *p,
-    uint8_t **planes, int frame_size, bool final);
+    uint8_t **planes, int frame_size, bool final, double playback_rate);
 int mp_scaletempo2_fill_buffer(struct mp_scaletempo2 *p,
-    float **dest, int dest_size, float playback_rate);
-bool mp_scaletempo2_frames_available(struct mp_scaletempo2 *p);
+    float **dest, int dest_size, double playback_rate);
+bool mp_scaletempo2_frames_available(struct mp_scaletempo2 *p, double playback_rate);
