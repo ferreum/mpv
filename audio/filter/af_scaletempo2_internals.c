@@ -450,20 +450,27 @@ static int write_completed_frames_to(struct mp_scaletempo2 *p,
     return rendered_frames;
 }
 
+static double get_updated_time(struct mp_scaletempo2 *p, double playback_rate)
+{
+    return p->output_time + p->ola_hop_size * playback_rate;
+}
+
 static bool can_perform_wsola(struct mp_scaletempo2 *p, double playback_rate)
 {
-    int rate_frames = p->ola_window_size * playback_rate;
-    return p->target_block_index + p->ola_window_size + rate_frames <= p->input_buffer_frames
-        && p->search_block_index + p->search_block_size + rate_frames <= p->input_buffer_frames;
+    double output_time = get_updated_time(p, playback_rate);
+    int search_block_index = p->search_block_index + (int)(output_time - p->search_block_center_offset + 0.5);
+    return p->target_block_index + p->ola_window_size <= p->input_buffer_frames
+        && search_block_index + p->search_block_size <= p->input_buffer_frames;
 }
 
 // number of frames needed until a wsola iteration can be performed
 static int frames_needed(struct mp_scaletempo2 *p, double playback_rate)
 {
-    int rate_frames = p->ola_window_size * playback_rate;
+    double output_time = get_updated_time(p, playback_rate);
+    int search_block_index = p->search_block_index + (int)(output_time - p->search_block_center_offset + 0.5);
     return MPMAX(0, MPMAX(
-        p->target_block_index + p->ola_window_size + rate_frames - p->input_buffer_frames,
-        p->search_block_index + p->search_block_size + rate_frames - p->input_buffer_frames));
+        p->target_block_index + p->ola_window_size - p->input_buffer_frames,
+        search_block_index + p->search_block_size - p->input_buffer_frames));
 }
 
 static void resize_input_buffer(struct mp_scaletempo2 *p, int size)
@@ -603,9 +610,11 @@ static bool run_one_wsola_iteration(struct mp_scaletempo2 *p, double playback_ra
         return false;
     }
 
-    p->output_time += p->ola_hop_size * playback_rate;
+    p->output_time = get_updated_time(p, playback_rate);
     p->search_block_index = (int)(p->output_time - p->search_block_center_offset + 0.5);
     remove_old_input_frames(p);
+
+    assert(p->search_block_index + p->search_block_size <= p->input_buffer_frames);
 
     get_optimal_block(p);
 
