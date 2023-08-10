@@ -103,19 +103,29 @@ static void process(struct mp_filter *f)
         assert(planes);
         assert(mp_aframe_get_planes(out) == p->data.channels);
 
+        int prev_input_samples = p->data.input_buffer_frames - p->data.search_block_index;
+
         out_samples = mp_scaletempo2_fill_buffer(&p->data,
             (float**)planes, out_samples, p->speed);
+
+        int consumed_samples = prev_input_samples
+            - (p->data.input_buffer_frames - p->data.search_block_index);
+
+        double out_speed = 1;
+        if (out_samples > 0) {
+            out_speed = consumed_samples / (double) out_samples;
+        }
 
         double pts = mp_aframe_get_pts(p->pending);
         if (pts != MP_NOPTS_VALUE) {
             double frame_delay = p->data.input_buffer_frames - p->data.search_block_index
-                                 + p->data.num_complete_frames * p->speed
-                                 + out_samples * p->speed;
+                                 + p->data.num_complete_frames * out_speed
+                                 + out_samples * out_speed;
             mp_aframe_set_pts(out, pts - frame_delay / mp_aframe_get_effective_rate(out));
         }
 
         mp_aframe_set_size(out, out_samples);
-        mp_aframe_mul_speed(out, p->speed);
+        mp_aframe_mul_speed(out, out_speed);
         mp_pin_in_write(f->ppins[1], MAKE_FRAME(MP_FRAME_AUDIO, out));
     }
 
