@@ -748,7 +748,6 @@ static void get_symmetric_hanning_window(int window_length, float* window)
 void mp_scaletempo2_init(struct mp_scaletempo2 *p, int channels, int rate)
 {
     p->muted_partial_frame = 0;
-    p->output_time = 0;
     p->search_block_center_offset = 0;
     p->search_block_index = 0;
     p->num_complete_frames = 0;
@@ -801,6 +800,8 @@ void mp_scaletempo2_init(struct mp_scaletempo2 *p, int channels, int rate)
     p->search_block_size = p->num_candidate_blocks + (p->ola_window_size - 1);
     p->search_block = realloc_2d(p->search_block, p->channels, p->search_block_size);
     p->target_block = realloc_2d(p->target_block, p->channels, p->ola_window_size);
+
+    p->output_time = p->search_block_center_offset;
 
     resize_input_buffer(p, 4 * MPMAX(p->ola_window_size, p->search_block_size));
     p->input_buffer_frames = 0;
