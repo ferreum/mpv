@@ -735,7 +735,7 @@ void mp_scaletempo2_destroy(struct mp_scaletempo2 *p)
 void mp_scaletempo2_reset(struct mp_scaletempo2 *p)
 {
     p->input_buffer_frames = 0;
-    p->output_time = 0.0;
+    p->output_time = p->search_block_center_offset;
     p->search_block_index = 0;
     p->target_block_index = 0;
     // Clear the queue of decoded packets.
