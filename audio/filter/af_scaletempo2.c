@@ -65,10 +65,13 @@ static void process(struct mp_filter *f)
             int frame_size = mp_aframe_get_size(p->pending);
             uint8_t **planes = mp_aframe_get_data_ro(p->pending);
             int read = mp_scaletempo2_fill_input_buffer(&p->data,
-                planes, frame_size, final, p->speed);
+                planes, frame_size, p->speed);
             mp_aframe_skip_samples(p->pending, read);
         }
-        p->sent_final |= final;
+        if (final && p->pending && !p->sent_final) {
+            mp_scaletempo2_set_final(&p->data);
+            p->sent_final = true;
+        }
 
         if (mp_scaletempo2_frames_available(&p->data, p->speed)) {
             if (eof) {
@@ -82,8 +85,6 @@ static void process(struct mp_filter *f)
                 return;
             } else if (format_change) {
                 // go on with proper reinit on the next iteration
-                p->initialized = false;
-                p->sent_final = false;
             }
         }
     }
