@@ -15,7 +15,7 @@ struct priv {
     bool sent_final;
     struct mp_aframe *pending;
     bool initialized;
-    float speed;
+    double speed;
 };
 
 static bool init_scaletempo2(struct mp_filter *f);
