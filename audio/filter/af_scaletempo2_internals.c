@@ -729,12 +729,9 @@ int mp_scaletempo2_fill_buffer(struct mp_scaletempo2 *p,
         return frames_to_render;
     }
 
-    int slower_step = (int) ceilf(p->ola_window_size * playback_rate);
-    int faster_step = (int) ceilf(p->ola_window_size / playback_rate);
-
     // Optimize the most common |playback_rate| ~= 1 case to use a single copy
     // instead of copying frame by frame.
-    if (p->ola_window_size <= faster_step && slower_step >= p->ola_window_size) {
+    if (fabs(playback_rate - 1.0) < 1e-10) {
 
         if (p->wsola_output_started) {
             p->wsola_output_started = false;
